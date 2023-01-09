@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.grpc.my.kvstore";
+option java_outer_classname = "KeyValueStoreProto";
+
+package keyvaluestore;
+
+service KeyValueStore {
+  // Get a value with specified key.
+  rpc GetValue(GetRequest) returns (GetResponse) {}
+
+  // Set a value with specified key and value.
+  rpc SetValue(SetRequest) returns (SetResponse) {}
+}
+
+// The request message
+message GetRequest {
+  string key = 1;
+}
+
+// The response message
+message GetResponse {
+  string value = 1;
+}
+
+message SetRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message SetResponse {
+  bool successed = 1;
+}
