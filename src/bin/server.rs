@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use keyvaluestore::key_value_store_server::{KeyValueStore, KeyValueStoreServer};
 use keyvaluestore::{GetRequest, GetResponse, SetRequest, SetResponse};
@@ -9,9 +10,11 @@ pub mod keyvaluestore {
     tonic::include_proto!("keyvaluestore");
 }
 
+type Db = Arc<Mutex<HashMap<String, String>>>;
+
 #[derive(Debug)]
 pub struct KVStoreService {
-    db: HashMap<String, String>,
+    store: Db,
 }
 
 #[tonic::async_trait]
@@ -20,12 +23,12 @@ impl KeyValueStore for KVStoreService {
         &self,
         request: Request<GetRequest>,
     ) -> Result<Response<GetResponse>, Status> {
-        println!("GetValue: {:?}", request);
+        println!("GetValue from: {:?}", request.remote_addr());
 
         let key = request.into_inner().key;
 
-        if self.db.contains_key(&key) {
-            let val = self.db.get(&key).unwrap();
+        let store = self.store.lock().unwrap();
+        if let Some(val) = store.get(&key) {
             return Ok(Response::new(GetResponse { value: val.clone() }));
         }
 
@@ -34,9 +37,16 @@ impl KeyValueStore for KVStoreService {
 
     async fn set_value(
         &self,
-        _request: Request<SetRequest>,
+        request: Request<SetRequest>,
     ) -> Result<Response<SetResponse>, Status> {
-        unimplemented!()
+        println!("SetValue from: {:?}", request.remote_addr());
+
+        let req = request.into_inner();
+
+        let mut store = self.store.lock().unwrap();
+        store.insert(req.key, req.value);
+
+        Ok(Response::new(SetResponse { successed: true }))
     }
 }
 
@@ -46,14 +56,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Listening on: {}", addr);
 
-    let mut values = HashMap::new();
-    values.insert("one".to_string(), "1".to_string());
-    values.insert("two".to_string(), "2".to_string());
+    let db = Arc::new(Mutex::new(HashMap::new()));
 
-    let store = KVStoreService { db: values };
+    let store = KVStoreService { store: db };
 
-    let service = KeyValueStoreServer::new(store);
-    Server::builder().add_service(service).serve(addr).await?;
+    let svc = KeyValueStoreServer::new(store);
+    Server::builder().add_service(svc).serve(addr).await?;
 
     Ok(())
 }

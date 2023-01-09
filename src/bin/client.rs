@@ -1,5 +1,5 @@
 use keyvaluestore::key_value_store_client::KeyValueStoreClient;
-use keyvaluestore::GetRequest;
+use keyvaluestore::{GetRequest, SetRequest};
 use tonic::Request;
 
 pub mod keyvaluestore {
@@ -10,10 +10,19 @@ pub mod keyvaluestore {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = KeyValueStoreClient::connect("http://[::1]:10000").await?;
 
-    let response = client
-        .get_value(Request::new(GetRequest { key: "two".to_string() }))
+    let _ = client
+        .set_value(Request::new(SetRequest {
+            key: "foo".to_string(),
+            value: "bar".to_string(),
+        }))
         .await?;
-    println!("response: {:?}", response);
+
+    let response = client
+        .get_value(Request::new(GetRequest {
+            key: "foo".to_string(),
+        }))
+        .await?;
+    println!("get response: {:?}", response);
 
     Ok(())
 }
