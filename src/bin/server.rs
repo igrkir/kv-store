@@ -32,7 +32,8 @@ impl KeyValueStore for KVStoreService {
             return Ok(Response::new(GetResponse { value: val.clone() }));
         }
 
-        Ok(Response::new(GetResponse::default()))
+        // Ok(Response::new(GetResponse::default()))
+        Ok(Response::new(GetResponse { value: "(nil)".to_string() }))
     }
 
     async fn set_value(
