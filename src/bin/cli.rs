@@ -41,12 +41,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Command::Get { key } => {
             let request = Request::new(GetRequest { key });
             let response = client.get_value(request).await?;
-            println!("GET RESPONSE={:?}", response.into_inner().value);
+            println!("c: GET_RESPONSE={:?}", response.into_inner().value);
         }
         Command::Set { key, value } => {
             let request = Request::new(SetRequest { key, value });
             match client.set_value(request).await {
-                Ok(response) => println!("RES: {:?}", response.into_inner()),
+                Ok(response) => println!("c: SET_RESPONSE: {:?}", response.into_inner()),
                 Err(e) => println!("ERROR: {:?}", e),
             }
         }

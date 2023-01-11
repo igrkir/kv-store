@@ -23,7 +23,7 @@ impl KeyValueStore for KVStoreService {
         &self,
         request: Request<GetRequest>,
     ) -> Result<Response<GetResponse>, Status> {
-        println!("GetValue from: {:?}", request.remote_addr());
+        println!("s: GET_REQUEST: from({:?})", request.remote_addr());
 
         let key = request.into_inner().key;
 
@@ -40,7 +40,7 @@ impl KeyValueStore for KVStoreService {
         &self,
         request: Request<SetRequest>,
     ) -> Result<Response<SetResponse>, Status> {
-        println!("SetValue from: {:?}", request.remote_addr());
+        println!("s: SET_REQUEST:  from({:?})", request.remote_addr());
 
         let req = request.into_inner();
 
